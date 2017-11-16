@@ -43,6 +43,7 @@
 # Copyright 2017 Your name here, unless otherwise noted.
 #
 class rhelsecurity {
-
+  include rhelsecurity::selinux
+  include rhelsecurity::admin_users
 
 }
