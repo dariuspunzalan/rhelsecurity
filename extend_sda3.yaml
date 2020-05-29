@@ -1,0 +1,36 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+  - name: install packages
+    yum:
+      name:
+      - parted
+      - kpartx
+      state: present
+
+  - name: get disk info
+    parted:
+      device: /dev/sda
+      unit: MiB
+    register: sda_disk_info
+
+  - name: remove sda3 to recreate
+    parted:
+      device: /dev/sda
+      number: 3
+      state: absent
+
+  - name: recreate sda3 with max disk
+    parted:
+      device: /dev/sda
+      number: 3
+      part_start: '{{ sda_disk_info.partitions[2].begin }}MiB'
+      state: present
+
+  - name: inform disk of new size
+    shell: kpartx -u /dev/sda3
+
+  - name: resize pv
+    shell: pvresize /dev/sda3

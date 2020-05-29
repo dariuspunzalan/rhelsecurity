@@ -1,0 +1,27 @@
+---
+- hosts: all
+  connection: local
+  gather_facts: no
+  # become: yes
+
+  tasks:
+    - name: set variables
+      set_fact:
+        vmware_networks:
+          - name: dvs-ALC-Compute-25G
+            ip: '{{ item.ipaddress }}'
+            netmask: '{{ item.netmask }}'
+            start_connected: '{{ item.start_connected | default("yes") }}'
+            gateway: '{{ item.gateway | default(omit)}}'
+            vlan: '{{ item.vlan | default(omit) }}'
+            device_type: '{{ item.device_type | default("vmxnet3") }}'
+            dns_servers: '{{ item.dns_servers | default(omit) }}'
+      loop: '{{ network_interfaces_hash }}'
+      register: vmware_interface
+
+    - name: set fact
+      set_fact: vm_net_details="{{ vmware_interface.results| map(attribute='ansible_facts.vmware_networks') | flatten | list }}"
+
+    - name: Display
+      debug:
+        var: vm_net_details
